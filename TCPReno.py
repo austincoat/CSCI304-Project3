@@ -1,88 +1,92 @@
 import time
 import threading
-seqnum = 1
-acknum = 0
+
+seqNum = []
 payload = []
-windowSize = 1
-seqnumClient = 0
-count = 0
-maxWindowSize = 8
-
+ackNum = 0
+windowSize= 1
+windowReset =0
 timeStamp =[]
+sendTemp = 0
 
 
-def send(seqnumS,payloadS,windowSizeS):
+
+def send(seqNumS,payloadS,windowSizeS):
+    global ackNum
+    global sendTemp
     global windowSize
-    global count
-    while (True):
-        if( acknum == payloadS):
-            break
-        if (count+1 == payloadS):
-            timeStamp.append(seqnumS)
-            timeStamp.append("sent")
-            timeStamp.append(time.time())
-            client(payloadS,seqnumS)
-            seqnumS = seqnumS + 1
-            time.sleep(1)
+    if(0 == seqNumS % 10 and windowSizeS != -1):
+        print "lost"
+        windowSize = windowSize/2
+        timeStamp.append(seqNumS)
+        timeStamp.append("sent")
+        timeStamp.append(time.time())
+        client(seqNumS,"lost")
+        client(seqNumS,payloadS)
+    else:
+        timeStamp.append(seqNumS)
+        timeStamp.append("sent")
+        timeStamp.append(time.time())
+        client(seqNumS,payloadS)
 
-            #print acknum
-        while (acknum < seqnumClient):
-            print "waiting"
+def client(seqNumC,payloadC):
+    if(payloadC == "lost"):
+        time.sleep(5)
+        return seqNumC
+    time.sleep(2)
+    ackRec(seqNumC)
 
-
-def ackReceive(seqnumC):
-    global acknum
+def ackRec(seqNumA):
+    global ackNum
     global windowSize
-    global count
-    global maxWindowSize
-    count = count + 1
-    acknum= acknum+1
-    timeStamp.append(seqnumC)
-    timeStamp.append("rec")
+    global windowReset
+
+    #this will keep printing 4 if 5 gets lost
+    if(ackNum == seqNumA - 1):
+        ackNum = seqNumA
+        #print ackNum
+    #ackNum = ackNum + 1
+
+    windowReset = windowReset + 1
+
+    timeStamp.append(seqNumA)
+    timeStamp.append("Rec")
     timeStamp.append(time.time())
-    if(acknum == windowSize):
-        windowSize = windowSize + windowSize
+
+    increase = 1
+    if(windowSize <8):
+        increase = windowSize
+
+    if(windowReset == windowSize):
+        windowSize = windowSize + increase
+        print "testst"
+        windowReset = 0
 
 
-        # if(windowSize == maxWindowSize):
-        #     windowSize = windowSize/2
-        print windowSize
-        time.sleep(2)
-
-
-def client(payloadC,seqnumC):
-
-    global seqnumClient
-    tempseqnumClient = seqnumClient + 1
-    if (tempseqnumClient == seqnumC):
-        ackReceive(seqnumC)
-        seqnumClient= seqnumClient +1
-        #print seqnumClient
+    #print windowSize
+    print seqNumA
 
 def main():
-    seqnumClient = 0
-    for i in range(10):
+    global payload
+    global seqNum
+    global windowSize
+    global ackNum
+
+    for i in range(25):
+        seqNum.append(i+1)
         payload.append(i+1)
 
-    i= 0
-    temp = 1
-    while(acknum <10):
-        if(i<10):
-            t1 = threading.Thread(target=send, args = (seqnum,payload[i],windowSize))
-            t1.daemon = True
-            print "send"
-            t1.start()
-            temp = temp +1
-            i = i+1
 
+    for k in range(25):
+        time.sleep(2)
+
+        t1 = threading.Thread(target=send, args = (seqNum[k],payload[k],windowSize))
+        t1.daemon = True
+        t1.start()
 
     for k in range(len(timeStamp)):
         print timeStamp[k]
 
 
 
-
     #send(seqnum,payload,windowSize)
-
-
-main()
