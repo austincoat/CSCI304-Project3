@@ -31,9 +31,9 @@ def send(seqNumS,payloadS,windowSizeS):
 
 def client(seqNumC,payloadC):
     if(payloadC == "lost"):
-        time.sleep(5)
+        time.sleep(3)
         return seqNumC
-    time.sleep(2)
+    time.sleep(1)
     ackRec(seqNumC)
 
 def ackRec(seqNumA):
@@ -67,24 +67,27 @@ def ackRec(seqNumA):
     print seqNumA
 
 def main():
+    f = open('file.txt', 'wb')
     global payload
     global seqNum
     global windowSize
     global ackNum
 
-    for i in range(25):
+    for i in range(50):
         seqNum.append(i+1)
         payload.append(i+1)
 
 
-    for k in range(25):
-        time.sleep(2)
+    for k in range(50):
+        time.sleep(1)
 
         t1 = threading.Thread(target=send, args = (seqNum[k],payload[k],windowSize))
         t1.daemon = True
         t1.start()
 
     for k in range(len(timeStamp)):
+        f.write(str(timeStamp[k]))
+        f.write("\n")
         print timeStamp[k]
 
 

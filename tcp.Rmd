@@ -1,0 +1,47 @@
+---
+title: "TCP Tahoe And Reno"
+author: "Austin Coates and Malak Patel"
+date: "4/7/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+https://inst.eecs.berkeley.edu/~ee122/fa05/projects/Project2/SACKRENEVEGAS.pdf  
+
+## Tahoe
+
+  TCP Tahoe is a protocol usually used to refer to the TCP congestion algorithim. Tahoe runs with the TCP principle of conservation of packets, so there are no packets being injected into a network that is already filled. Tahoe also has a congestion window, to show the network capacity, as to know when to cut the window size and increment slowly as to avoid packet loss and congestion. For our implementation of Tahoe, we executed a single packet system, sending eacho packet using an individual thread,  but instead of the quick recovery of Reno we used regular TCP recovery which has a large loss of window size and overall efficiency.  
+```{r,echo=FALSE}
+library(ggplot2)
+library(readr)
+library(reshape)
+library(reshape2)
+tahoe <- read_csv("~/networkingDummyDataFilledWithLies/tahoe.csv")
+mdata1 <- dcast(tahoe, Seq ~ type)
+mdata1$throughput <- (mdata1$Rec - mdata1$sent)
+head(mdata1)
+ggplot(data=mdata1, aes(x=Seq, y=throughput, group=throughput, colour=throughput)) + geom_line() + geom_point()
+# X axis would be the range of times, while y axis is the value of the throughput.
+```
+
+## Reno
+
+  Reno retains all od the basic principles you see in Tahoe, such as slow starts, and the re-transmit timer. The differnece is, the lost packets are detected earlier in the pipeline, and the window size is halfed, not reduced to one.  For Reno, we executed a single packet sending technique using threads,  but implemented a fast recovery to 
+  not have a large loss of the window size, which really hurts the overall throughput. 
+```{r,echo = FALSE}
+library(ggplot2)
+library(readr)
+library(reshape2)
+file <- read_csv("~/networkingDummyDataFilledWithLies/file.csv")
+temp<-c("Seq","type","time")
+file<-file[temp]
+mdata2 <- dcast(file, Seq ~ type)
+mdata2$throughput <- (mdata2$Rec - mdata2$sent)
+head(mdata2)
+ggplot(data=mdata2, aes(x=Seq, y=throughput, group=throughput, colour=throughput)) + geom_line() + geom_point()
+```
+
+
+
